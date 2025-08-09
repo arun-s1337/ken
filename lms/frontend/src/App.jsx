@@ -47,9 +47,9 @@ import ForgotPassword from "./ForgotPassword/ForgotPassword"
 import  { ProtectedRoute,UserProtectedRoute } from "./ProtectedRoute"
 
 //lms
-import Drmenubar from "./Lms/Homepage/DrMenubar/DrMenubar"
-import Drkenhome from "./Lms/Homepage/DrHomepage/DrHomepage"
-import Login from "./Lms/Login/Login"
+import Drmenubar from "./LandingPage/Lms/Homepage/DrMenubar/DrMenubar"//from here path is changed
+import Drkenhome from "./LandingPage/Lms/Homepage/DrHomepage/DrHomepage"
+import Login from "./LandingPage/Lms/Login/Login"
 
 import CourseVideos from "./Lms/Homepage/CourseVideos/CourseVideos"
 import Availablecourses from "./Lms/Homepage/AvailableCourses/AvailableCourses"
