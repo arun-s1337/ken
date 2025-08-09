@@ -1,0 +1,16 @@
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.dashboard-content {
+  flex: 1;
+  transition: margin-left 0.2s ease-out;
+  margin-left: 0;
+  width: 100%;
+}
+
+.dashboard-content.expanded {
+  margin-left: 220px;
+}

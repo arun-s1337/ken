@@ -1,0 +1,29 @@
+.dashboard-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dashboard-sidebar {
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.dashboard-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  transition: margin-left 0.3s ease-in-out;
+  padding: 20px;
+}
+
+.dashboard-content.collapsed {
+  margin-left: 100px; 
+  width: 100%; 
+  flex-grow: 1 !important;
+  
+}
+
+.dashboard-content.expanded {
+  margin-left: 200px; /* When sidebar is expanded */
+}

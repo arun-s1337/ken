@@ -1,0 +1,56 @@
+.curvedarea {
+  background-image: url("../assets/curvedbg.png");
+  background-repeat: no-repeat;
+  background-size: cover;        /* Ensures the background fills the area */
+  background-position: center;   /* Keeps the image centered */
+  color: white;
+  border-radius: 20px;
+}
+
+.btn-slide {
+          position: relative;
+          overflow: hidden;
+          background-color: #ffa200;
+          color: white;
+          border: none;
+          padding: 12px 50px 12px 24px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border:2px solid #ffa200;
+          font-size:20px;
+        }
+       
+        .btn-slide .arrow {
+          transition: transform 0.3s ease;
+          font-size: 18px;
+        }     
+        .btn-slide:hover .arrow {
+          transform: translateX(8px);
+        }    
+        @keyframes float {
+          0% { transform: translateX(12px) translateY(0px); }
+          100% { transform: translateX(12px) translateY(-2px); }
+        }
+       
+        /* Hover effects for all buttons */
+        .btn-slide:hover {
+          background-color: #ffa200;
+          border:2px solid white;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 16, 64, 0.3);
+        }
+       
+
+
+.curvedarea label{
+color: #ffa200;
+}
+.txt{
+  line-height: 50px;
+  font-size: 40px !important;
+  text-align: left;
+}

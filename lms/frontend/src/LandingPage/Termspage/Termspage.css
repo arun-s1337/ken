@@ -1,0 +1,32 @@
+.termsandconditions{
+    background-color: #f9f6f6;
+    border-radius: 10px;
+}
+.termsandconditions p{
+    font-size: 13px;
+  }
+
+
+  .termsandconditions ul li{
+    font-size: 13px;
+    list-style-type: disc !important;
+  }
+  .termsandconditions ul li::marker{
+    font-size: 13px;
+  }
+  .termsandconditions ol li{
+    font-size: 13px;
+  }
+  .termsandconditions ol li::marker{
+    font-size: 13px;
+   
+  }
+.lst{
+    list-style-type: disc;
+}
+ 
+
+
+ 
+
+

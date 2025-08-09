@@ -1,0 +1,56 @@
+/* Curved border for the table wrapper */
+.table-responsive {
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+
+/* Avoid default collapse */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+
+/* Remove left and right borders from all td and th */
+table td,
+table th {
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  border-left: none;
+  border-right: none;
+}
+
+
+/* Optional: Add padding and alignment for cleaner look */
+table td,
+table th {
+  padding: 0.75rem;
+  text-align: left;
+}
+
+
+/* Rounded corners for the top-left and top-right header cells */
+table thead tr:first-child th:first-child {
+  border-top-left-radius: 15px;
+}
+
+
+table thead tr:first-child th:last-child {
+  border-top-right-radius: 15px;
+}
+
+
+/* Rounded corners for the bottom-left and bottom-right cells */
+table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 15px;
+}
+
+
+table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 15px;
+}
+
+
+
