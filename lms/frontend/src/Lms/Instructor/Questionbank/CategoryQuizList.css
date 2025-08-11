@@ -1,0 +1,21 @@
+.bghead{
+    background-color: blueviolet;
+}z
+.bgpurplecard{
+background-color: rgb(209, 180, 235);
+
+}
+
+.custom-radio input[type="radio"] {
+  cursor: pointer; 
+}
+
+.updatebtn:hover{
+  color: #ffa200;
+}
+
+input[type="checkbox"]{
+    cursor: pointer;   
+}
+
+

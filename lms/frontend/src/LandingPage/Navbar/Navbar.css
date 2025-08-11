@@ -1,0 +1,11 @@
+
+.lnknav{
+    text-decoration: none !important;
+    color:#ffff;
+    cursor: pointer;
+
+}
+
+.lnknav:hover{
+    color:#ffa200;
+}

@@ -1,0 +1,92 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+.lessontext {
+  color: #510058;
+  background-color: #f6f6f6;
+  font-size: 20px !important;
+  box-shadow: 1px 1px 1px 1px rgb(246, 244, 244);
+}
+
+.active-link {
+  font-weight: 800;
+  background-color: #ffa200;
+  padding: 10px;
+  color: #fff;
+  border-radius: 20px;
+}
+
+.content-area {
+  margin-top: 20px;
+}
+
+.iconpara {
+  font-weight: 600 !important;
+  font-size: 20px;
+  text-decoration: none;
+  color: #001040;
+}
+
+/* Video wrappers with consistent 80% width */
+.video-wrapper {
+  position: relative;
+  width: 90%;
+  padding-bottom: 45.55%; /* 16:9 aspect ratio for video */
+  border-radius: 30px;
+  overflow: hidden;
+  margin: 0 auto;
+  background-color: white;
+}
+
+.video-wrapper1 {
+  position: relative;
+  width: 80%;
+  border-radius: 30px;
+  overflow: hidden;
+  margin: 0 auto;
+  background-color: white;
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 500px;
+  border: 0;
+}
+
+/* Content wrapper to match video width */
+.content-wrapper {
+  width: 90%;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+/* Responsive design */
+@media (max-width: 766px) {
+  .video-wrapper {
+    position: relative;
+    width: 80%;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px 2px rgba(0, 0, 0, 0.1);
+    background-color: white;
+  }
+  
+  .video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  
+  .content-wrapper {
+    width: 100%;
+    margin: 0 auto;
+    padding: 15px 0;
+  }
+}
+

@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+
+.crd {
+  border: 2px solid #ffca70;
+  border-radius: 10px;
+  position: relative;
+  height: 300px;
+}
+
+
+.cards {
+  padding: 15px;
+  border-radius: 10px;
+  position: absolute;
+  right: -7px;
+  top: -18px;
+  z-index: 10;
+  box-shadow: 1px 1px 2px 2px rgb(227, 226, 226);
+  background-color: white;
+  width: 98%;
+}
+
+.patientwords{
+  font-size: 60px;
+}
+.clientname {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  background-color: #001040;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* Responsive rules */
+@media (max-width: 768px) {
+ .patientwords{
+  font-size: 40px;
+}
+
+
+.crd {
+  border: 1px solid white;
+  border-radius: 10px;
+  position: relative;
+  min-height: 380px;
+}
+
+  .cards {
+   
+    padding: 10px;
+    width: 100%;
+  
+  }
+}
+
+@media (min-width:769px) and (max-width:1300px){
+ .crd {
+  border: 2px solid #ffca70;
+  border-radius: 10px;
+  position: relative;
+  height: 340px;
+} 
+}
+
+
+

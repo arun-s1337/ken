@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh; 
+  overflow-x: hidden;
+  font-family: "Montserrat", "Arial", sans-serif;
+  font-weight: 400;
+   
+}
+
+.montserrat-main {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.keynotespeakerhead{
+  color: #001040;
+  font-weight: 700;
+  font-size: 35px;
+}
+.headingarea{
+  color: #001040;
+  font-weight: 700;
+  font-size: 45px;
+}
+.contactbtn{
+  background-color: #ffa200;
+  color: white;
+  border-radius: 40px !important;
+  border: 2px solid #C2C2C2;
+  padding: 5px 10px;
+  font-size: 23px;
+}
+.shadow-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  background-color: white;
+}
+
+@media (max-width:769px){
+.headingarea{
+  font-size: 35px;
+}
+.keynotespeakerhead{
+  font-size: 30px;
+}
+}
+ul li{
+  list-style-type: disc !important;
+}
+
+
+
+.inter-main {
+  font-family: "Inter", sans-serif !important;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+
+.bluebutton{
+  background-color: #001040;
+  color: white;
+  border-radius: 5px;
+}
+
+.abtpara{
+  font-size: 18px;
+  font-family: "Inter" sans-serif !important;
+}
+
+.fnt{
+  font-weight: 900 !important;
+}
+
+p{
+  text-align: justify;
+}
+
+button:hover{
+cursor: pointer;
+}
+
+
+@keyframes scroll-marquee {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.marquee-wrapper {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.marquee-inner {
+    display: inline-flex;
+    animation: scroll-marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse 25s linear infinite;
+}
+
+
+.nocopy {
+  user-select: none;     /* Disable text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+
+.contactbtn{
+  background-color: #ffa200;
+  color: white;
+  border-radius: 40px !important;
+  border: 2px solid #C2C2C2;
+  padding: 5px 10px;
+  font-size: 23px;
+  transition: transform 0.5s ease;
+}
+
+.contactbtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Clean soft shadow */
+}
