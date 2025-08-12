@@ -1,11 +1,14 @@
 FROM node:20-alpine AS build
+
 WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend .
 
-# Auto-fix import paths by matching filesystem case
+# Install Python and pip, then create a virtual environment
 RUN apk add --no-cache python3 py3-pip \
+  && python3 -m venv /venv \
+  && . /venv/bin/activate \
   && pip install casefixer \
   && casefixer --path src
 
