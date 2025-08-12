@@ -1,13 +1,22 @@
-FROM node:18
+# Use official Node image for production
+FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
+# Install dependencies first for better caching
 COPY package*.json ./
+RUN npm install --production
 
-RUN npm install
-
+# Copy backend source code
 COPY . .
 
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=5000
+
+# Expose backend port
 EXPOSE 5000
 
+# Start the backend
 CMD ["node", "server.js"]
