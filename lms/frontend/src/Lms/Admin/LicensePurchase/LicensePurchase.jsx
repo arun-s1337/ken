@@ -116,7 +116,7 @@ export default function LicensePurchase() {
         })
 
         
-        console.log((await response).status)
+        console.log((response).status)
 
         if(response.status === 200){
           toast.success("Payment processed successfully!");
@@ -193,7 +193,7 @@ export default function LicensePurchase() {
                     purchase_units: [
                         {
                           amount: {
-                              value: totalPrice
+                              value: "1.00"
                             }
                               }
                                ]
@@ -213,7 +213,7 @@ export default function LicensePurchase() {
                       customer_email : payer.email_address,
                       transaction_id : details.id,
                       customer_name : payer.name.given_name,
-                      amount : totalPrice,
+                      amount : 1.00,
                       description : itemName,
                       quantity : quantity
                     })
