@@ -3,17 +3,17 @@ version: "3.9"
 services:
   frontend:
     build:
-      context: ./lms   # root of lms folder
+      context: .                          # Context is lms/ folder
       dockerfile: frontend/dockerfile
     image: arun586/ken-frontend:prod
     ports:
-      - "80:80"
+      - "80:80"                           # Site on EC2 public IP without port
     depends_on:
       - backend
 
   backend:
     build:
-      context: ./lms   # root of lms folder
+      context: .                          # Context is lms/ folder
       dockerfile: backend/dockerfile
     image: arun586/ken-backend:prod
     expose:
