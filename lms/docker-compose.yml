@@ -3,18 +3,18 @@ version: "3.9"
 services:
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: ./lms   # root of lms folder
+      dockerfile: frontend/dockerfile
     image: arun586/ken-frontend:prod
     ports:
-      - "80:80"  # Serve frontend on port 80 (default HTTP)
+      - "80:80"
     depends_on:
       - backend
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./lms   # root of lms folder
+      dockerfile: backend/dockerfile
     image: arun586/ken-backend:prod
     expose:
       - "5000"
@@ -22,4 +22,3 @@ services:
       - NODE_ENV=production
       - PORT=5000
       - STRIPE_SECRET_KEY=sk_test_1234567890
-    command: node server.js
