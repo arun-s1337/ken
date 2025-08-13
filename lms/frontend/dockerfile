@@ -1,20 +1,32 @@
+# Stage 1: Build frontend app
 FROM node:20-alpine AS build
 
+# Set working directory
 WORKDIR /app
+
+# Install dependencies
 COPY frontend/package*.json ./
 RUN npm install
+
+# Copy source code
 COPY frontend .
 
-# Install Python and pip, then create a virtual environment
-RUN apk add --no-cache python3 py3-pip \
-  && python3 -m venv /venv \
-  && . /venv/bin/activate \
-  && pip install casefixer \
-  && casefixer --path src
+# OPTIONAL: If you had any preprocessing scripts (e.g., for linting/fixing), add them here
+# For now, removing 'casefixer' since it's invalid
 
+# Build the production app
 RUN npm run build
 
+# Stage 2: Serve with nginx
 FROM nginx:alpine
+
+# Copy built app from previous stage
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy custom Nginx config if you have it
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
 EXPOSE 80
+
+# Default Nginx CMD is fine
