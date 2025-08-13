@@ -3,7 +3,7 @@ version: "3.9"
 services:
   frontend:
     build:
-      context: ./lms      # Ensure the correct build context
+      context: .
       dockerfile: frontend/dockerfile
     image: arun586/ken-frontend:prod
     ports:
@@ -15,7 +15,7 @@ services:
 
   backend:
     build:
-      context: ./lms      # Ensure the correct build context
+      context: .
       dockerfile: backend/dockerfile
     image: arun586/ken-backend:prod
     expose:
