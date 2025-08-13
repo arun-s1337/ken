@@ -3,29 +3,23 @@ version: "3.9"
 services:
   frontend:
     build:
-      context: .
-      dockerfile: frontend/dockerfile
-    image: arun586/ken-frontend:prod
+      context: ./frontend
+      dockerfile: dockerfile
+    image: arun586/ken-frontend:ci
     ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - app-network
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    # For production you might replace npm run dev with serving build output via nginx
+    command: npm run dev
 
   backend:
     build:
-      context: .
-      dockerfile: backend/dockerfile
-    image: arun586/ken-backend:prod
-    expose:
-      - "5000"
+      context: ./backend
+      dockerfile: dockerfile
+    image: arun586/ken-backend:ci
+    ports:
+      - "5000:5000"
     environment:
-      - NODE_ENV=production
-      - PORT=5000
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+      - NODE_ENV=development
+    command: npm run dev
