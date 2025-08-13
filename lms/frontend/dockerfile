@@ -2,8 +2,8 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Install tools to fix case issues
-RUN apk add --no-cache bash rename findutils
+# Install tools to fix case issues (util-linux provides rename)
+RUN apk add --no-cache bash findutils util-linux
 
 # Copy package files and install deps
 COPY package*.json ./
@@ -12,7 +12,7 @@ RUN npm ci
 # Copy all source files
 COPY . .
 
-# 🛠 Step: Normalize file & folder names to lowercase inside the container
+# Normalize file & folder names to lowercase inside the container
 RUN find . -depth | while read path; do \
     lower=$(echo "$path" | tr 'A-Z' 'a-z'); \
     if [ "$path" != "$lower" ]; then \
@@ -20,7 +20,7 @@ RUN find . -depth | while read path; do \
     fi \
 ; done
 
-# Run lint (optional — can be removed if it blocks builds)
+# Run lint (optional)
 RUN npm run lint || echo "⚠️ Lint warnings ignored due to case fix"
 
 # Build project
