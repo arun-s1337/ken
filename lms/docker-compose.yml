@@ -4,7 +4,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     image: arun586/ken-backend:ci
     container_name: lms-backend
     environment:
@@ -21,7 +21,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     image: arun586/ken-frontend:ci
     container_name: lms-frontend
     ports:
