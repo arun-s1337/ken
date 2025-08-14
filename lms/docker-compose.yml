@@ -7,11 +7,9 @@ services:
       dockerfile: dockerfile
     image: arun586/ken-frontend:ci
     ports:
-      - "5173:5173"
-    environment:
-      - NODE_ENV=development
-    # For production you might replace npm run dev with serving build output via nginx
-    command: npm run dev
+      - "80:80"
+    depends_on:
+      - backend
 
   backend:
     build:
@@ -21,5 +19,4 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=development
-    command: npm run dev
+      - NODE_ENV=production
