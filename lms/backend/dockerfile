@@ -1,31 +1,26 @@
 FROM node:20-alpine
 WORKDIR /app
 
-# Install tools for case normalization (util-linux provides rename)
+# Install tools for case normalization
 RUN apk add --no-cache bash findutils util-linux
 
-# Copy package files first for dependency install
 COPY package*.json ./
 
-# Install dependencies:
-#  - If package-lock.json exists → use npm ci
-#  - Else → use npm install --omit=dev
 RUN if [ -f package-lock.json ]; then \
       npm ci --omit=dev; \
     else \
       npm install --omit=dev; \
     fi
 
-# Copy source files
 COPY . .
 
-# Normalize file/folder names to lowercase inside container
+# Normalize to lowercase
 RUN find . -depth | while read path; do \
-    lower=$(echo "$path" | tr 'A-Z' 'a-z'); \
-    if [ "$path" != "$lower" ]; then \
-        mkdir -p "$(dirname "$lower")" && mv "$path" "$lower"; \
-    fi \
-; done
+      lower=$(echo "$path" | tr 'A-Z' 'a-z'); \
+      if [ "$path" != "$lower" ]; then \
+          mkdir -p "$(dirname "$lower")" && mv "$path" "$lower"; \
+      fi \
+    ; done
 
 ENV NODE_ENV=production
 ENV PORT=5000
