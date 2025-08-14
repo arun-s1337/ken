@@ -4,18 +4,20 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     image: arun586/ken-frontend:ci
+    container_name: lms-frontend
     ports:
-      - "80:80"
+      - "80:80" # Nginx serves on port 80
     depends_on:
       - backend
 
   backend:
     build:
       context: ./backend
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     image: arun586/ken-backend:ci
+    container_name: lms-backend
     ports:
       - "5000:5000"
     environment:
