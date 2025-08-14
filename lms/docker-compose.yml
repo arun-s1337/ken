@@ -1,31 +1,28 @@
 version: "3.9"
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: dockerfile
-    image: arun586/ken-backend:ci
-    container_name: lms-backend
-    environment:
-      - NODE_ENV=production
-    ports:
-      - "5000:5000"
-    healthcheck:
-      # BusyBox wget is available in alpine
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/"]
-      interval: 10s
-      timeout: 5s
-      retries: 8
-
   frontend:
     build:
       context: ./frontend
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     image: arun586/ken-frontend:ci
-    container_name: lms-frontend
     ports:
-      - "80:80"
-    depends_on:
-      backend:
-        condition: service_healthy
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+    command: npm run dev
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: arun586/ken-backend:ci
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./backend:/app
+    command: npm run dev
