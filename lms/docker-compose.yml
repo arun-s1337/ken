@@ -1,26 +1,47 @@
 version: "3.9"
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    image: arun586/ken-frontend:ci
-    container_name: lms-frontend
-    ports:
-      - "80:80" # Nginx serves on port 80
-    depends_on:
-      - backend
-    restart: always
-
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    image: arun586/ken-backend:ci
+      dockerfile: dockerfile
     container_name: lms-backend
+    image: arun586/ken-backend:ci
+    restart: always
     ports:
       - "5000:5000"
-    environment:
-      - NODE_ENV=production
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+    container_name: lms-frontend
+    image: arun586/ken-frontend:ci
     restart: always
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
+      - VITE_FS_STRICT=false
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    container_name: lms-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lmsdb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db_data:
