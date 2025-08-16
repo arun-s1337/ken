@@ -24,9 +24,8 @@ services:
     restart: always
     ports:
       - "3000:80"
-    environment:
-      - NODE_OPTIONS=--openssl-legacy-provider
-      - VITE_FS_STRICT=false
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
 
