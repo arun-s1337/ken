@@ -6,23 +6,21 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     image: arun586/ken-frontend:ci
+    container_name: lms-frontend
     ports:
-      - "5173:5173"
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - ./frontend:/app
-    command: npm run dev
+      - "80:80" # Nginx serves on port 80
+    depends_on:
+      - backend
+    restart: always
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     image: arun586/ken-backend:ci
+    container_name: lms-backend
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=development
-    volumes:
-      - ./backend:/app
-    command: npm run dev
+      - NODE_ENV=production
+    restart: always
