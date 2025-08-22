@@ -1,18 +1,20 @@
-\# Step 1: Use a Node.js base image
+# Step 1: Use a Node.js base image
 FROM node:18-alpine
 
-# Step 2: Set working directory
+# Step 2: Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Step 3: Copy package.json and install dependencies
+# Step 3: Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Step 4: Install dependencies
 RUN npm install
 
-# Step 4: Copy the rest of the application
+# Step 5: Copy the rest of the application files
 COPY . .
 
-# Step 5: Expose the port the app runs on
-EXPOSE 3000
+# Step 6: Expose the necessary port (change as per your backend API)
+EXPOSE 5000
 
-# Step 6: Run the app
-CMD ["node", "server.js"]
+# Step 7: Define the command to run the backend application
+CMD ["npm", "start"]
