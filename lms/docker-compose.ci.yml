@@ -1,26 +1,27 @@
+# lms/docker-compose.ci.yml
 version: "3.9"
 
 services:
   backend:
-    image: arun586/ken-backend:ci
     build: ./backend
     container_name: ken-backend
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DB_HOST=mysql
-      - DB_USER=root
-      - DB_PASSWORD=root
-      - DB_NAME=ken
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: ken
+    depends_on:
+      - mysql
     restart: always
 
   frontend:
-    image: arun586/ken-frontend:ci
     build: ./frontend
     container_name: ken-frontend
     ports:
-      - "80:80"
+      - "5173:5173"
     depends_on:
       - backend
     restart: always
