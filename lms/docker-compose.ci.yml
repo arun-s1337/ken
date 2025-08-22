@@ -4,8 +4,6 @@ services:
   backend:
     build: ./backend
     container_name: ken-backend
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: production
       DB_HOST: mysql
@@ -19,8 +17,6 @@ services:
   frontend:
     build: ./frontend
     container_name: ken-frontend
-    ports:
-      - "5173:5173"
     depends_on:
       - backend
     restart: always
@@ -31,8 +27,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: ken
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     restart: always
