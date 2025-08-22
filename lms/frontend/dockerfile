@@ -1,25 +1,20 @@
-# Step 1: Use Node.js as a base image
+# Step 1: Use a Node.js base image
 FROM node:18-alpine
 
-# Step 2: Set working directory for the frontend
+# Step 2: Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Step 3: Install dependencies for the frontend
+# Step 3: Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Step 4: Install dependencies
 RUN npm install
 
-# Step 4: Copy the source code
+# Step 5: Copy the rest of the application files
 COPY . .
 
-# Step 5: Build the frontend application
-RUN npm run build
+# Step 6: Expose the necessary port
+EXPOSE 3000
 
-# Step 6: Use Nginx to serve the built app
-FROM nginx:stable-alpine
-
-# Copy the build to nginx server
-COPY --from=0 /usr/src/app/dist /usr/share/nginx/html
-
-# Expose the port for Nginx
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Step 7: Define the command to run the application
+CMD ["npm", "start"]
