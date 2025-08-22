@@ -1,4 +1,3 @@
-# lms/docker-compose.ci.yml
 version: "3.9"
 
 services:
