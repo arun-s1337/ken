@@ -1,31 +1,35 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import path from 'path'
+import fs from 'fs'
+
+function caseInsensitiveResolver() {
+  return {
+    name: 'case-insensitive-resolver',
+    resolveId(source, importer) {
+      if (!importer) return null
+
+      const dir = path.dirname(importer)
+      const files = fs.readdirSync(dir)
+
+      // try to match ignoring case
+      const match = files.find(f => f.toLowerCase() === source.toLowerCase().split('/').pop())
+      if (match) {
+        return path.resolve(dir, match)
+      }
+      return null
+    }
+  }
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@Landingpage': path.resolve(__dirname, 'src/Landingpage'),
-      '@About': path.resolve(__dirname, 'src/About'),
-      '@Admin': path.resolve(__dirname, 'src/Admin'),
-      '@Blog': path.resolve(__dirname, 'src/Blog'),
-      '@Book': path.resolve(__dirname, 'src/Book'),
-      '@Checkout': path.resolve(__dirname, 'src/Checkout'),
-      '@Contact': path.resolve(__dirname, 'src/Contact'),
-      '@User': path.resolve(__dirname, 'src/Userprofile'),
-      '@Lms': path.resolve(__dirname, 'src/Lms'),
-      '@Scroll': path.resolve(__dirname, 'src/ScrollToTop.jsx'),
-      '@Protected': path.resolve(__dirname, 'src/ProtectedRoute.jsx'),
-      '@Forgot': path.resolve(__dirname, 'src/ForgotPassword')
-    }
-  },
+  plugins: [react(), tailwindcss(), caseInsensitiveResolver()],
   server: {
     host: true,
     port: 5173,
     proxy: {
-      '/api': 'http://backend:5000' // Docker container name mapping
+      '/api': 'http://localhost:5000'
     }
   }
-});
+})
