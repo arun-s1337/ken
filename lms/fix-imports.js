@@ -2,61 +2,47 @@
 import fs from "fs";
 import path from "path";
 
-const SRC_DIRS = ["lms/frontend/src", "lms/backend/src"];
-
 function fixImports(dir) {
-  if (!fs.existsSync(dir)) {
-    console.log(`Directory not found: ${dir}`);
-    return;
-  }
+  if (!fs.existsSync(dir)) return;
 
-  function checkFile(filePath) {
-    if (!fs.statSync(filePath).isFile()) return;
-    if (!filePath.endsWith(".js") && !filePath.endsWith(".jsx")) return;
-
-    let content = fs.readFileSync(filePath, "utf-8");
+  function checkFile(file) {
+    if (!file.endsWith(".js") && !file.endsWith(".jsx")) return;
+    let content = fs.readFileSync(file, "utf-8");
     let updated = content;
 
-    const importRegex = /from\s+['"](\..*?)['"]/g;
+    const regex = /from\s+['"](\..*?)['"]/g;
     let match;
-
-    while ((match = importRegex.exec(content)) !== null) {
+    while ((match = regex.exec(content)) !== null) {
       const importPath = match[1];
-      const absImportPath = path.resolve(path.dirname(filePath), importPath);
-      const dirName = path.dirname(absImportPath);
-      const baseName = path.basename(absImportPath);
+      const abs = path.resolve(path.dirname(file), importPath);
+      const dirName = path.dirname(abs);
+      const baseName = path.basename(abs);
 
       if (fs.existsSync(dirName)) {
         const realFiles = fs.readdirSync(dirName);
-        const fixed = realFiles.find(
-          f => f.toLowerCase() === baseName.toLowerCase()
-        );
+        const fixed = realFiles.find(f => f.split(".")[0].toLowerCase() === baseName.toLowerCase());
         if (fixed && fixed !== baseName) {
-          console.log(`Fixing import in ${filePath}: ${importPath} → ${path.join(path.dirname(importPath), fixed)}`);
           updated = updated.replace(importPath, path.join(path.dirname(importPath), fixed));
+          console.log(`Fixed import in ${file}: ${importPath} → ${fixed}`);
         }
       }
     }
 
     if (updated !== content) {
-      fs.writeFileSync(filePath, updated, "utf-8");
+      fs.writeFileSync(file, updated, "utf-8");
     }
   }
 
-  function walk(dirPath) {
-    for (const f of fs.readdirSync(dirPath)) {
-      const full = path.join(dirPath, f);
-      if (fs.statSync(full).isDirectory()) {
-        walk(full);
-      } else {
-        checkFile(full);
-      }
+  function walk(d) {
+    for (const f of fs.readdirSync(d)) {
+      const full = path.join(d, f);
+      if (fs.statSync(full).isDirectory()) walk(full);
+      else checkFile(full);
     }
   }
 
   walk(dir);
 }
 
-// Run for frontend and backend
-SRC_DIRS.forEach(fixImports);
-console.log("Import case-sensitivity check complete.");
+// Run for frontend src only
+fixImports("lms/frontend/src");
