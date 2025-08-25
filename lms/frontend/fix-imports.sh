@@ -65,14 +65,14 @@ for key in "${!EXPECTED[@]}"; do
     # Find file ignoring case
     actual_file=$(find "$dir_path" -maxdepth 1 -type f -iname "$file_name")
     if [ -n "$actual_file" ] && [ "$actual_file" != "$expected_path" ]; then
-      echo "⚡ Fixing: $actual_file -> $expected_path"
+      echo "Fixing: $actual_file -> $expected_path"
       mv "$actual_file" "$expected_path"
     elif [ ! -f "$expected_path" ]; then
-      echo "❌ Missing: $expected_path"
+      echo "Missing: $expected_path"
     fi
   else
-    echo "❌ Missing directory: $dir_path"
+    echo "Missing directory: $dir_path"
   fi
 done
 
-echo "✅ Import case-sensitivity check complete."
+echo "Import case-sensitivity check complete."
