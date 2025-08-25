@@ -1,46 +1,61 @@
-const fs = require('fs');
-const path = require('path');
+// lms/scan-imports.js
 
-function getAllFiles(dirPath, arrayOfFiles) {
-  const files = fs.readdirSync(dirPath);
+import fs from 'fs';
+import path from 'path';
 
-  arrayOfFiles = arrayOfFiles || [];
-
-  files.forEach(file => {
-    const fullPath = path.join(dirPath, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
-    } else {
-      arrayOfFiles.push(fullPath);
-    }
-  });
-
-  return arrayOfFiles;
-}
-
-// Replace imports to correct case
-function fixImports() {
-  const srcPath = path.join(__dirname, '../frontend/src');
-
-  if (!fs.existsSync(srcPath)) {
-    console.error('Directory does not exist:', srcPath);
-    process.exit(1);
+function scanAndFixImports(dir) {
+  if (!fs.existsSync(dir)) {
+    console.error(`Directory does not exist: ${dir}`);
+    return;
   }
 
-  const allFiles = getAllFiles(srcPath);
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-  allFiles.forEach(file => {
-    if (file.endsWith('.jsx') || file.endsWith('.js')) {
-      let content = fs.readFileSync(file, 'utf-8');
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
 
-      // Simple regex fix: replace "Landingpage" -> "LandingPage", etc.
-      content = content.replace(/Landingpage/g, 'LandingPage');
-      content = content.replace(/Blog\/AddBlog/g, 'Blog/Addblog');
+    if (entry.isDirectory()) {
+      scanAndFixImports(fullPath);
+    } else if (entry.isFile() && /\.(jsx?|tsx?)$/.test(entry.name)) {
+      let content = fs.readFileSync(fullPath, 'utf-8');
+      let updated = false;
 
-      fs.writeFileSync(file, content, 'utf-8');
+      const regex = /import\s+.*?from\s+['"](.*?)['"]/g;
+      let match;
+
+      while ((match = regex.exec(content)) !== null) {
+        const importPath = match[1];
+
+        // Only fix relative imports (./ or ../)
+        if (importPath.startsWith('.')) {
+          const importDir = path.dirname(fullPath);
+          const targetFullPath = path.resolve(importDir, importPath);
+
+          // Get actual files/folders in the directory
+          const files = fs.readdirSync(path.dirname(targetFullPath));
+
+          const actual = files.find(f => f.toLowerCase() === path.basename(targetFullPath).toLowerCase());
+
+          if (actual && actual !== path.basename(targetFullPath)) {
+            const correctedPath = importPath.replace(path.basename(importPath), actual);
+            console.log(`🔧 Fixing import in ${fullPath}: ${importPath} -> ${correctedPath}`);
+
+            content = content.replace(importPath, correctedPath);
+            updated = true;
+          }
+        }
+      }
+
+      if (updated) {
+        fs.writeFileSync(fullPath, content, 'utf-8');
+      }
     }
-  });
+  }
 }
 
-fixImports();
-console.log('Imports fixed successfully.');
+// Correct path for your repo
+const projectDir = path.resolve(process.cwd(), 'lms/frontend/src');
+
+console.log(`🔍 Scanning and fixing imports in: ${projectDir}`);
+scanAndFixImports(projectDir);
+console.log('Import scan & fix complete.');
