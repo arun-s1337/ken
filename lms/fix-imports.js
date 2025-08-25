@@ -6,7 +6,7 @@ const SRC_DIRS = ["lms/frontend/src", "lms/backend/src"];
 
 function fixImports(dir) {
   if (!fs.existsSync(dir)) {
-    console.log(`❌ Directory not found: ${dir}`);
+    console.log(`Directory not found: ${dir}`);
     return;
   }
 
@@ -32,7 +32,7 @@ function fixImports(dir) {
           f => f.toLowerCase() === baseName.toLowerCase()
         );
         if (fixed && fixed !== baseName) {
-          console.log(`⚡ Fixing import in ${filePath}: ${importPath} → ${path.join(path.dirname(importPath), fixed)}`);
+          console.log(`Fixing import in ${filePath}: ${importPath} → ${path.join(path.dirname(importPath), fixed)}`);
           updated = updated.replace(importPath, path.join(path.dirname(importPath), fixed));
         }
       }
@@ -59,4 +59,4 @@ function fixImports(dir) {
 
 // Run for frontend and backend
 SRC_DIRS.forEach(fixImports);
-console.log("✅ Import case-sensitivity check complete.");
+console.log("Import case-sensitivity check complete.");
