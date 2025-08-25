@@ -1,48 +1,34 @@
-// lms/fix-imports.js
-import fs from "fs";
-import path from "path";
+const fs = require('fs');
+const path = require('path');
 
-function fixImports(dir) {
-  if (!fs.existsSync(dir)) return;
+function checkImports(dir) {
+    if (!fs.existsSync(dir)) return;
 
-  function checkFile(file) {
-    if (!file.endsWith(".js") && !file.endsWith(".jsx")) return;
-    let content = fs.readFileSync(file, "utf-8");
-    let updated = content;
+    const files = fs.readdirSync(dir);
+    files.forEach(file => {
+        const fullPath = path.join(dir, file);
+        const stat = fs.statSync(fullPath);
 
-    const regex = /from\s+['"](\..*?)['"]/g;
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-      const importPath = match[1];
-      const abs = path.resolve(path.dirname(file), importPath);
-      const dirName = path.dirname(abs);
-      const baseName = path.basename(abs);
+        if (stat.isDirectory()) {
+            checkImports(fullPath);
+        } else if (file.endsWith('.js') || file.endsWith('.jsx')) {
+            const content = fs.readFileSync(fullPath, 'utf-8');
+            const regex = /import\s+.*\s+from\s+['"](.*)['"]/g;
+            let match;
+            while ((match = regex.exec(content)) !== null) {
+                let impPath = match[1];
+                if (!impPath.startsWith('.') && !impPath.startsWith('/')) continue;
 
-      if (fs.existsSync(dirName)) {
-        const realFiles = fs.readdirSync(dirName);
-        const fixed = realFiles.find(f => f.split(".")[0].toLowerCase() === baseName.toLowerCase());
-        if (fixed && fixed !== baseName) {
-          updated = updated.replace(importPath, path.join(path.dirname(importPath), fixed));
-          console.log(`Fixed import in ${file}: ${importPath} → ${fixed}`);
+                const resolved = path.resolve(path.dirname(fullPath), impPath);
+                if (!fs.existsSync(resolved) && !fs.existsSync(resolved + '.js') && !fs.existsSync(resolved + '.jsx')) {
+                    console.error(`Import missing: ${impPath} in ${fullPath}`);
+                }
+            }
         }
-      }
-    }
-
-    if (updated !== content) {
-      fs.writeFileSync(file, updated, "utf-8");
-    }
-  }
-
-  function walk(d) {
-    for (const f of fs.readdirSync(d)) {
-      const full = path.join(d, f);
-      if (fs.statSync(full).isDirectory()) walk(full);
-      else checkFile(full);
-    }
-  }
-
-  walk(dir);
+    });
 }
 
-// Run for frontend src only
-fixImports("lms/frontend/src");
+['frontend/src', 'backend/src', 'backend/db'].forEach(dir => {
+    console.log(`Scanning ${dir}...`);
+    checkImports(path.join(__dirname, dir));
+});
