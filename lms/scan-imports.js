@@ -1,34 +1,44 @@
 const fs = require('fs');
 const path = require('path');
 
-function checkImports(dir) {
-    if (!fs.existsSync(dir)) return;
-
-    const files = fs.readdirSync(dir);
-    files.forEach(file => {
+function getAllFiles(dir, ext, files = []) {
+    fs.readdirSync(dir).forEach(file => {
         const fullPath = path.join(dir, file);
-        const stat = fs.statSync(fullPath);
-
-        if (stat.isDirectory()) {
-            checkImports(fullPath);
-        } else if (file.endsWith('.js') || file.endsWith('.jsx')) {
-            const content = fs.readFileSync(fullPath, 'utf-8');
-            const regex = /import\s+.*\s+from\s+['"](.*)['"]/g;
-            let match;
-            while ((match = regex.exec(content)) !== null) {
-                let impPath = match[1];
-                if (!impPath.startsWith('.') && !impPath.startsWith('/')) continue;
-
-                const resolved = path.resolve(path.dirname(fullPath), impPath);
-                if (!fs.existsSync(resolved) && !fs.existsSync(resolved + '.js') && !fs.existsSync(resolved + '.jsx')) {
-                    console.error(`Import missing: ${impPath} in ${fullPath}`);
-                }
-            }
+        if (fs.statSync(fullPath).isDirectory()) {
+            getAllFiles(fullPath, ext, files);
+        } else if (fullPath.endsWith(ext)) {
+            files.push(fullPath);
         }
     });
+    return files;
 }
 
-['frontend/src', 'backend/src', 'backend/db'].forEach(dir => {
-    console.log(`Scanning ${dir}...`);
-    checkImports(path.join(__dirname, dir));
-});
+function checkImportCase(filePath) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const regex = /import .* from ['"](.*)['"]/g;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+        let importPath = match[1];
+        if (!importPath.startsWith('.')) continue; // only relative paths
+        const resolvedPath = path.resolve(path.dirname(filePath), importPath);
+        const dir = path.dirname(resolvedPath);
+        const base = path.basename(resolvedPath);
+
+        if (fs.existsSync(resolvedPath)) {
+            const actualFiles = fs.readdirSync(dir);
+            if (!actualFiles.includes(base)) {
+                console.log(`Case mismatch in ${filePath}: "${importPath}" should be "${actualFiles.find(f => f.toLowerCase() === base.toLowerCase())}"`);
+            }
+        } else if (fs.existsSync(resolvedPath + '.jsx')) {
+            // ok, skip
+        } else {
+            console.log(`File not found: ${importPath} in ${filePath}`);
+        }
+    }
+}
+
+// Run on all .js and .jsx files
+const allFiles = [...getAllFiles('./src', '.js'), ...getAllFiles('./src', '.jsx')];
+allFiles.forEach(checkImportCase);
+
+console.log('Case-check completed.');
