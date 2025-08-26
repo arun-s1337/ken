@@ -1,48 +1,46 @@
-const fs = require("fs");
-const path = require("path");
+// fix-all-imports.js
+const fs = require('fs');
+const path = require('path');
 
-const srcDir = path.join(__dirname, "frontend/src"); // adjust if your src is elsewhere
+const srcDir = path.join(__dirname, 'src');
 
-function flattenComponentFolders(dir) {
-  const items = fs.readdirSync(dir);
+function fixImportsInFile(filePath) {
+    let content = fs.readFileSync(filePath, 'utf8');
+    const importRegex = /import\s+(\w+)\s+from\s+['"](.+)['"]/g;
 
-  items.forEach((item) => {
-    const fullPath = path.join(dir, item);
-    const stats = fs.statSync(fullPath);
+    content = content.replace(importRegex, (match, varName, importPath) => {
+        // Ignore external modules
+        if (!importPath.startsWith('.')) return match;
 
-    if (stats.isDirectory()) {
-      // If folder contains exactly one folder and one JSX file nested, flatten it
-      const nestedItems = fs.readdirSync(fullPath);
+        const fullPath = path.join(path.dirname(filePath), importPath);
 
-      const nestedFolders = nestedItems.filter((f) =>
-        fs.statSync(path.join(fullPath, f)).isDirectory()
-      );
+        if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isDirectory()) {
+            const files = fs.readdirSync(fullPath);
+            const jsxFile = files.find(f => f.endsWith('.jsx'));
+            if (jsxFile) {
+                const newPath = path.join(importPath, jsxFile.replace('.jsx', ''));
+                console.log(`Updating import in ${filePath}: ${importPath} → ${newPath}`);
+                return `import ${varName} from "${newPath}"`;
+            }
+        }
 
-      const nestedFiles = nestedItems.filter((f) =>
-        fs.statSync(path.join(fullPath, f)).isFile()
-      );
+        return match;
+    });
 
-      if (nestedFolders.length === 1 && nestedFiles.length === 0) {
-        const nestedFolderPath = path.join(fullPath, nestedFolders[0]);
-        const nestedFolderFiles = fs.readdirSync(nestedFolderPath);
-
-        nestedFolderFiles.forEach((file) => {
-          const oldFilePath = path.join(nestedFolderPath, file);
-          const newFilePath = path.join(fullPath, file);
-
-          fs.renameSync(oldFilePath, newFilePath);
-          console.log(`Moved: ${oldFilePath} → ${newFilePath}`);
-        });
-
-        fs.rmdirSync(nestedFolderPath);
-        console.log(`Removed empty folder: ${nestedFolderPath}`);
-      }
-
-      // Recursively process subfolders
-      flattenComponentFolders(fullPath);
-    }
-  });
+    fs.writeFileSync(filePath, content, 'utf8');
 }
 
-flattenComponentFolders(srcDir);
-console.log("✅ All component folders flattened successfully!");
+function traverseDir(dir) {
+    const items = fs.readdirSync(dir);
+    items.forEach(item => {
+        const fullPath = path.join(dir, item);
+        if (fs.lstatSync(fullPath).isDirectory()) {
+            traverseDir(fullPath);
+        } else if (fullPath.endsWith('.jsx')) {
+            fixImportsInFile(fullPath);
+        }
+    });
+}
+
+traverseDir(srcDir);
+console.log('✅ All imports updated for all .jsx files!');
