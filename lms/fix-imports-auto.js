@@ -1,70 +1,86 @@
-#!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const SRC_DIR = path.join(__dirname, 'frontend/src');
+const SRC_DIR = path.join(__dirname, "frontend", "src");
+const APP_FILE = path.join(SRC_DIR, "App.jsx");
 
-// Recursively get all JS/JSX files
-function getAllJSFiles(dir) {
-    let files = [];
-    fs.readdirSync(dir).forEach(file => {
-        const fullPath = path.join(dir, file);
-        const stat = fs.statSync(fullPath);
-        if (stat.isDirectory()) {
-            files = files.concat(getAllJSFiles(fullPath));
-        } else if (file.endsWith('.js') || file.endsWith('.jsx')) {
-            files.push(fullPath);
-        }
-    });
-    return files;
+function ensureComponentFile(componentName) {
+  const folderPath = path.join(SRC_DIR, "Landingpage", componentName);
+  const filePath = path.join(folderPath, `${componentName}.jsx`);
+  const indexFile = path.join(folderPath, "index.jsx");
+
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+    console.log(`Created folder: ${folderPath}`);
+  }
+
+  if (fs.existsSync(indexFile) && !fs.existsSync(filePath)) {
+    // Prefer using index.jsx
+    console.log(`Found index.jsx for ${componentName}, fixing imports...`);
+    return "index";
+  }
+
+  if (!fs.existsSync(filePath)) {
+    // Create placeholder component
+    const placeholder = `
+      import React from "react";
+
+      const ${componentName} = () => {
+        return (
+          <div>
+            <h2>${componentName} placeholder</h2>
+          </div>
+        );
+      };
+
+      export default ${componentName};
+    `;
+    fs.writeFileSync(filePath, placeholder.trim());
+    console.log(`Created placeholder: ${filePath}`);
+  }
+
+  return componentName;
 }
 
-// Scan imports in a file
-function getImports(file) {
-    const content = fs.readFileSync(file, 'utf-8');
-    const regex = /import\s+.*?from\s+['"](.*?)['"]/g;
-    const imports = [];
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-        imports.push(match[1]);
+function fixAppImports() {
+  if (!fs.existsSync(APP_FILE)) {
+    console.error(`App.jsx not found at: ${APP_FILE}`);
+    process.exit(1);
+  }
+
+  let appContent = fs.readFileSync(APP_FILE, "utf8");
+  const components = [
+    "Navbar",
+    "HeroSection",
+    "Footer",
+    "Banner",
+    "Course",
+    "OurVideos",
+    "Author",
+    "BuyingBook",
+    "LatestBook",
+    "Youtube",
+    "Expert",
+    "Studies",
+    "Lift",
+    "SpeakerCard",
+  ];
+
+  components.forEach((comp) => {
+    const status = ensureComponentFile(comp);
+
+    if (status === "index") {
+      // Replace "./Landingpage/Comp/Comp" → "./Landingpage/Comp"
+      const regex = new RegExp(`\\./Landingpage/${comp}/${comp}`, "g");
+      appContent = appContent.replace(regex, `./Landingpage/${comp}`);
+    } else {
+      // Keep "./Landingpage/Comp/Comp"
+      // If missing, placeholder was created above
     }
-    return imports;
+  });
+
+  fs.writeFileSync(APP_FILE, appContent);
+  console.log("App.jsx imports fixed!");
 }
 
-// Fix file/folder names
-function fixImportPaths() {
-    const files = getAllJSFiles(SRC_DIR);
-
-    files.forEach(file => {
-        const imports = getImports(file);
-
-        imports.forEach(imp => {
-            if (!imp.startsWith('.')) return; // skip node_modules
-
-            const importerDir = path.dirname(file);
-            const importPath = path.resolve(importerDir, imp);
-            const expectedParts = importPath.split(path.sep);
-
-            let current = path.isAbsolute(importPath) ? path.sep : '';
-            for (let i = 1; i < expectedParts.length; i++) {
-                const part = expectedParts[i];
-                const parentDir = path.join(current, ...expectedParts.slice(1, i));
-                if (!fs.existsSync(parentDir)) continue;
-
-                const entries = fs.readdirSync(parentDir);
-                const match = entries.find(e => e.toLowerCase() === part.toLowerCase());
-                if (match && match !== part) {
-                    const oldPath = path.join(parentDir, match);
-                    const newPath = path.join(parentDir, part);
-                    console.log(`🔧 Renaming: ${oldPath} → ${newPath}`);
-                    fs.renameSync(oldPath, newPath);
-                }
-                current = path.join(parentDir, part);
-            }
-        });
-    });
-
-    console.log('✅ Import case-fixing complete.');
-}
-
-fixImportPaths();
+fixAppImports();
