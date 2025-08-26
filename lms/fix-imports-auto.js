@@ -1,40 +1,70 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const ROOT_DIR = path.join(__dirname, 'frontend', 'src'); // adjust if needed
+const ROOT = path.join(__dirname, "frontend", "src"); // adjust if needed
 
-// Move all files up (flatten) and remove empty folders
-function flattenComponents(dir) {
+// Folders that should always be lowercase
+const ASSET_FOLDERS = ["assets", "images", "img", "styles", "css", "public", "icons"];
+
+/**
+ * Normalize file/folder name
+ */
+function normalizeName(name, isDir, parent) {
+  const ext = path.extname(name);
+  const base = path.basename(name, ext);
+
+  // Always lowercase for known asset folders
+  if (isDir && ASSET_FOLDERS.includes(name.toLowerCase())) {
+    return name.toLowerCase();
+  }
+
+  // Inside asset folders: force lowercase everything
+  if (ASSET_FOLDERS.includes(parent?.toLowerCase())) {
+    return base.toLowerCase() + ext.toLowerCase();
+  }
+
+  if (isDir) {
+    // For component folders: preserve PascalCase (Navbar, HeroSection, etc.)
+    return /^[A-Z]/.test(name) ? name : name.toLowerCase();
+  }
+
+  // Components: PascalCase preserved, lowercase extension
+  if ((ext === ".jsx" || ext === ".js") && /^[A-Z]/.test(base)) {
+    return base + ext.toLowerCase();
+  }
+
+  // Otherwise force lowercase
+  return base.toLowerCase() + ext.toLowerCase();
+}
+
+/**
+ * Recursively rename files/folders consistently
+ */
+function renameRecursive(dir, parent = null) {
   const items = fs.readdirSync(dir);
 
   for (const item of items) {
     const fullPath = path.join(dir, item);
     const stats = fs.statSync(fullPath);
 
+    const newName = normalizeName(item, stats.isDirectory(), parent);
+    const newPath = path.join(dir, newName);
+
+    if (item !== newName) {
+      console.log(`Renaming: ${fullPath} → ${newPath}`);
+      fs.renameSync(fullPath, newPath);
+    }
+
     if (stats.isDirectory()) {
-      flattenComponents(fullPath); // recursive flatten
-
-      const subItems = fs.readdirSync(fullPath);
-      for (const subItem of subItems) {
-        const subPath = path.join(fullPath, subItem);
-        const targetPath = path.join(dir, subItem);
-        if (!fs.existsSync(targetPath)) {
-          fs.renameSync(subPath, targetPath);
-        } else {
-          console.warn(`Skipped (exists): ${targetPath}`);
-        }
-      }
-
-      // Remove empty folder
-      if (fs.existsSync(fullPath) && fs.readdirSync(fullPath).length === 0) {
-        fs.rmdirSync(fullPath);
-      }
+      renameRecursive(newPath, newName);
     }
   }
 }
 
-// Fix file/folder names to lowercase **after flattening**
-function fixCaseRecursive(dir) {
+/**
+ * Fix all import paths inside .js/.jsx/.ts/.tsx files
+ */
+function fixImports(dir) {
   const items = fs.readdirSync(dir);
 
   for (const item of items) {
@@ -42,53 +72,39 @@ function fixCaseRecursive(dir) {
     const stats = fs.statSync(fullPath);
 
     if (stats.isDirectory()) {
-      fixCaseRecursive(fullPath);
-
-      const lower = item.toLowerCase();
-      const newPath = path.join(dir, lower);
-      if (item !== lower && !fs.existsSync(newPath)) {
-        fs.renameSync(fullPath, newPath);
-        console.log(`Folder renamed: ${fullPath} → ${newPath}`);
-      }
-    } else {
-      const lower = item.toLowerCase();
-      const newPath = path.join(dir, lower);
-      if (item !== lower && !fs.existsSync(newPath)) {
-        fs.renameSync(fullPath, newPath);
-        console.log(`File renamed: ${fullPath} → ${newPath}`);
-      }
-    }
-  }
-}
-
-// Update import paths in .jsx/.js files
-function updateImports(dir) {
-  const items = fs.readdirSync(dir);
-
-  for (const item of items) {
-    const fullPath = path.join(dir, item);
-    const stats = fs.statSync(fullPath);
-
-    if (stats.isDirectory()) {
-      updateImports(fullPath);
+      fixImports(fullPath);
     } else if (/\.(js|jsx|ts|tsx)$/.test(item)) {
-      let content = fs.readFileSync(fullPath, 'utf8');
-      content = content.replace(/(['"])(\..*?\/)([A-Za-z0-9_-]+)\1/g, (match, quote, start, lastPart) => {
-        return `${quote}${start}${lastPart.toLowerCase()}${quote}`;
-      });
-      fs.writeFileSync(fullPath, content, 'utf8');
+      let content = fs.readFileSync(fullPath, "utf8");
+
+      content = content.replace(
+        /(['"])(\..*?)\1/g,
+        (match, quote, relPath) => {
+          const fixed = relPath
+            .split("/")
+            .map((seg) => {
+              if (!seg) return seg;
+              // Asset-like folders or filenames → lowercase
+              if (ASSET_FOLDERS.includes(seg.toLowerCase()) || seg.includes(".")) {
+                return seg.toLowerCase();
+              }
+              // React components → preserve PascalCase
+              if (/^[A-Z]/.test(seg)) return seg;
+              return seg.toLowerCase();
+            })
+            .join("/");
+          return `${quote}${fixed}${quote}`;
+        }
+      );
+
+      fs.writeFileSync(fullPath, content, "utf8");
     }
   }
 }
 
-console.log('📂 Flattening component folders...');
-flattenComponents(ROOT_DIR);
-console.log('✅ Flattening complete.');
+console.log("📂 Flattening and fixing component & asset folders...");
+renameRecursive(ROOT);
+console.log("✅ Renaming complete.");
 
-console.log('🔧 Fixing file and folder case...');
-fixCaseRecursive(ROOT_DIR);
-console.log('✅ Case fixing complete.');
-
-console.log('🔄 Updating all import paths...');
-updateImports(ROOT_DIR);
-console.log('🎉 All imports fixed successfully.');
+console.log("🔄 Updating all import paths...");
+fixImports(ROOT);
+console.log("🎉 All imports fixed successfully.");
