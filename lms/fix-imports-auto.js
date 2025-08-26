@@ -1,54 +1,57 @@
-// fix-imports-auto-vite-full.js
-const fs = require('fs');
-const path = require('path');
+// fix-imports-auto.js
+// Node.js script to auto-fix import paths for Linux (case-sensitive)
 
-const SRC_DIR = path.join(__dirname, 'frontend/src'); // adjust if needed
+import fs from 'fs';
+import path from 'path';
 
-// Flatten all nested folders: move JS/JSX files up and match folder name
-function flattenAll(dir) {
-  const items = fs.readdirSync(dir);
-  items.forEach(item => {
-    const fullPath = path.join(dir, item);
+const SRC_DIR = path.resolve('./src'); // adjust if needed
+
+// Get all files recursively
+function getAllFiles(dir, fileList = []) {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
     if (fs.statSync(fullPath).isDirectory()) {
-      flattenAll(fullPath); // recursive first
-
-      // check for JS/JSX files
-      const files = fs.readdirSync(fullPath).filter(f => f.endsWith('.js') || f.endsWith('.jsx'));
-      files.forEach(file => {
-        const oldFile = path.join(fullPath, file);
-        const newFileName = item + path.extname(file); // parent folder name
-        const newFile = path.join(dir, newFileName);
-        fs.renameSync(oldFile, newFile);
-      });
-
-      // remove empty folder
-      const remaining = fs.readdirSync(fullPath);
-      if (remaining.length === 0) fs.rmdirSync(fullPath);
+      getAllFiles(fullPath, fileList);
+    } else if (file.endsWith('.js') || file.endsWith('.jsx')) {
+      fileList.push(fullPath);
     }
-  });
+  }
+  return fileList;
 }
 
-// Update all import paths to match flattened files
-function updateImports(dir) {
-  const items = fs.readdirSync(dir);
-  items.forEach(item => {
-    const fullPath = path.join(dir, item);
-    if (fs.statSync(fullPath).isDirectory()) {
-      updateImports(fullPath);
-    } else if (item.endsWith('.js') || item.endsWith('.jsx')) {
-      let content = fs.readFileSync(fullPath, 'utf-8');
+// Fix import path casing
+function fixImports(filePath) {
+  let content = fs.readFileSync(filePath, 'utf-8');
+  const importRegex = /from ['"](.*)['"]/g;
 
-      // Replace imports like './Folder/Folder' → './Folder'
-      content = content.replace(/from\s+['"](\.\/[\w\d_-]+)\/\1['"]/g, 'from "$1"');
-
-      fs.writeFileSync(fullPath, content, 'utf-8');
+  let match;
+  while ((match = importRegex.exec(content)) !== null) {
+    const importPath = match[1];
+    if (importPath.startsWith('.') || importPath.startsWith('/')) {
+      const fullImportPath = path.resolve(path.dirname(filePath), importPath);
+      try {
+        const filesInDir = fs.readdirSync(path.dirname(fullImportPath));
+        const correctFile = filesInDir.find(f =>
+          f.toLowerCase() === path.basename(fullImportPath).toLowerCase()
+        );
+        if (correctFile && correctFile !== path.basename(fullImportPath)) {
+          const correctedPath = path.join(path.dirname(importPath), correctFile)
+            .replace(/\\/g, '/');
+          content = content.replace(importPath, correctedPath);
+          console.log(`Fixed import: ${importPath} → ${correctedPath} in ${filePath}`);
+        }
+      } catch {
+        // ignore missing files
+      }
     }
-  });
+  }
+
+  fs.writeFileSync(filePath, content, 'utf-8');
 }
 
-console.log('📂 Flattening all component folders...');
-flattenAll(SRC_DIR);
-console.log('✅ Flattening complete.');
-console.log('🔄 Updating all import paths...');
-updateImports(SRC_DIR);
-console.log('🎉 All imports fixed successfully.');
+// Process all files
+const allFiles = getAllFiles(SRC_DIR);
+allFiles.forEach(fixImports);
+
+console.log('🎉 All imports fixed for case-sensitivity!');
