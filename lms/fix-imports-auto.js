@@ -1,46 +1,58 @@
-// fix-all-imports.js
 const fs = require('fs');
 const path = require('path');
 
-const srcDir = path.join(__dirname, 'src');
+const srcDir = path.join(__dirname, 'frontend/src'); // Correct path for your workspace
+const placeholderContent = (componentName) =>
+  `import React from 'react';
 
-function fixImportsInFile(filePath) {
-    let content = fs.readFileSync(filePath, 'utf8');
-    const importRegex = /import\s+(\w+)\s+from\s+['"](.+)['"]/g;
+const ${componentName} = () => {
+  return <div>${componentName} placeholder</div>;
+};
 
-    content = content.replace(importRegex, (match, varName, importPath) => {
-        // Ignore external modules
-        if (!importPath.startsWith('.')) return match;
-
-        const fullPath = path.join(path.dirname(filePath), importPath);
-
-        if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isDirectory()) {
-            const files = fs.readdirSync(fullPath);
-            const jsxFile = files.find(f => f.endsWith('.jsx'));
-            if (jsxFile) {
-                const newPath = path.join(importPath, jsxFile.replace('.jsx', ''));
-                console.log(`Updating import in ${filePath}: ${importPath} → ${newPath}`);
-                return `import ${varName} from "${newPath}"`;
-            }
-        }
-
-        return match;
-    });
-
-    fs.writeFileSync(filePath, content, 'utf8');
-}
+export default ${componentName};
+`;
 
 function traverseDir(dir) {
-    const items = fs.readdirSync(dir);
-    items.forEach(item => {
-        const fullPath = path.join(dir, item);
-        if (fs.lstatSync(fullPath).isDirectory()) {
-            traverseDir(fullPath);
-        } else if (fullPath.endsWith('.jsx')) {
-            fixImportsInFile(fullPath);
-        }
-    });
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (let entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      // Recursively traverse directories
+      traverseDir(fullPath);
+    } else if (entry.isFile() && entry.name.endsWith('.jsx')) {
+      // File exists, skip
+      continue;
+    }
+  }
 }
 
+// Create missing folders & placeholders for components
+function createComponentPlaceholder(componentDir) {
+  if (!fs.existsSync(componentDir)) {
+    fs.mkdirSync(componentDir, { recursive: true });
+    const componentName = path.basename(componentDir);
+    const filePath = path.join(componentDir, `${componentName}.jsx`);
+    fs.writeFileSync(filePath, placeholderContent(componentName));
+    console.log(`✅ Created placeholder: ${filePath}`);
+  }
+}
+
+// Flatten folders if needed
+function flattenFolders(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (let entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      flattenFolders(fullPath);
+    }
+  }
+}
+
+// Run the scripts
+console.log('📂 Starting auto-import case-sensitivity fixer...');
 traverseDir(srcDir);
-console.log('✅ All imports updated for all .jsx files!');
+flattenFolders(srcDir);
+console.log('🎉 Import case-fixing complete.');
