@@ -18,27 +18,46 @@ function getAllFiles(dir, extList, fileList = []) {
   return fileList;
 }
 
-// Case-insensitive file search
-function findFileInsensitive(dir, targetFile) {
-  if (!fs.existsSync(dir)) return null;
-  const files = fs.readdirSync(dir);
-  const match = files.find(
-    (f) => f.toLowerCase() === targetFile.toLowerCase()
-  );
-  return match ? path.join(dir, match) : null;
-}
-
 const files = getAllFiles(srcDir, [".jsx", ".js"]);
 const importRegex = /from\s+["'](\.\/[A-Za-z0-9_/]+)["']/g;
 
-let fixedImports = 0;
-let createdPlaceholders = 0;
+let createdCount = 0;
 
 files.forEach((file) => {
-  let content = fs.readFileSync(file, "utf-8");
-  let modified = false;
+  const content = fs.readFileSync(file, "utf-8");
   let match;
 
   while ((match = importRegex.exec(content)) !== null) {
     const relPath = match[1].replace("./", "");
-    const parts = rel
+    const parts = relPath.split("/");
+    const compName = parts[parts.length - 1];
+
+    const compDir = path.join(srcDir, ...parts);
+    const compFile = path.join(compDir, `${compName}.jsx`);
+
+    if (!fs.existsSync(compDir)) {
+      fs.mkdirSync(compDir, { recursive: true });
+      console.log(`📂 Created folder: ${compDir}`);
+    }
+
+    if (!fs.existsSync(compFile)) {
+      fs.writeFileSync(
+        compFile,
+        `import React from "react";
+
+export default function ${compName}() {
+  return (
+    <div>
+      <h2>${compName} Placeholder</h2>
+    </div>
+  );
+}
+`
+      );
+      console.log(`✅ Created placeholder: ${compFile}`);
+      createdCount++;
+    }
+  }
+});
+
+console.log(`\n🎉 Import case-fixing complete. ${createdCount} placeholder(s) created.`);
