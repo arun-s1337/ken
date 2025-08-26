@@ -1,86 +1,35 @@
 const fs = require("fs");
 const path = require("path");
 
-const SRC_DIR = path.join(__dirname, "frontend", "src");
-const APP_FILE = path.join(SRC_DIR, "App.jsx");
+const srcDir = path.join(__dirname, "src");
 
-function ensureComponentFile(componentName) {
-  const folderPath = path.join(SRC_DIR, "Landingpage", componentName);
-  const filePath = path.join(folderPath, `${componentName}.jsx`);
-  const indexFile = path.join(folderPath, "index.jsx");
+// Recursively get all .jsx and .js files
+function getAllFiles(dir, extList, fileList = []) {
+  fs.readdirSync(dir).forEach((file) => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
 
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true });
-    console.log(`Created folder: ${folderPath}`);
-  }
-
-  if (fs.existsSync(indexFile) && !fs.existsSync(filePath)) {
-    // Prefer using index.jsx
-    console.log(`Found index.jsx for ${componentName}, fixing imports...`);
-    return "index";
-  }
-
-  if (!fs.existsSync(filePath)) {
-    // Create placeholder component
-    const placeholder = `
-      import React from "react";
-
-      const ${componentName} = () => {
-        return (
-          <div>
-            <h2>${componentName} placeholder</h2>
-          </div>
-        );
-      };
-
-      export default ${componentName};
-    `;
-    fs.writeFileSync(filePath, placeholder.trim());
-    console.log(`Created placeholder: ${filePath}`);
-  }
-
-  return componentName;
-}
-
-function fixAppImports() {
-  if (!fs.existsSync(APP_FILE)) {
-    console.error(`App.jsx not found at: ${APP_FILE}`);
-    process.exit(1);
-  }
-
-  let appContent = fs.readFileSync(APP_FILE, "utf8");
-  const components = [
-    "Navbar",
-    "HeroSection",
-    "Footer",
-    "Banner",
-    "Course",
-    "OurVideos",
-    "Author",
-    "BuyingBook",
-    "LatestBook",
-    "Youtube",
-    "Expert",
-    "Studies",
-    "Lift",
-    "SpeakerCard",
-  ];
-
-  components.forEach((comp) => {
-    const status = ensureComponentFile(comp);
-
-    if (status === "index") {
-      // Replace "./Landingpage/Comp/Comp" → "./Landingpage/Comp"
-      const regex = new RegExp(`\\./Landingpage/${comp}/${comp}`, "g");
-      appContent = appContent.replace(regex, `./Landingpage/${comp}`);
-    } else {
-      // Keep "./Landingpage/Comp/Comp"
-      // If missing, placeholder was created above
+    if (stat.isDirectory()) {
+      getAllFiles(filePath, extList, fileList);
+    } else if (extList.some((ext) => file.endsWith(ext))) {
+      fileList.push(filePath);
     }
   });
-
-  fs.writeFileSync(APP_FILE, appContent);
-  console.log("App.jsx imports fixed!");
+  return fileList;
 }
 
-fixAppImports();
+const files = getAllFiles(srcDir, [".jsx", ".js"]);
+const importRegex = /from\s+["'](\.\/[A-Za-z0-9_/]+)["']/g;
+
+let createdCount = 0;
+
+files.forEach((file) => {
+  const content = fs.readFileSync(file, "utf-8");
+  let match;
+
+  while ((match = importRegex.exec(content)) !== null) {
+    const relPath = match[1].replace("./", "");
+    const parts = relPath.split("/");
+    const compName = parts[parts.length - 1];
+
+    const compDir = path.join(srcDir
