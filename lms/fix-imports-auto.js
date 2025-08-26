@@ -1,63 +1,48 @@
 const fs = require("fs");
 const path = require("path");
 
-const srcDir = path.join(__dirname, "frontend", "src");
+const srcDir = path.join(__dirname, "frontend/src"); // adjust if your src is elsewhere
 
-// Recursively get all .jsx and .js files
-function getAllFiles(dir, extList, fileList = []) {
-  fs.readdirSync(dir).forEach((file) => {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
+function flattenComponentFolders(dir) {
+  const items = fs.readdirSync(dir);
 
-    if (stat.isDirectory()) {
-      getAllFiles(filePath, extList, fileList);
-    } else if (extList.some((ext) => file.endsWith(ext))) {
-      fileList.push(filePath);
+  items.forEach((item) => {
+    const fullPath = path.join(dir, item);
+    const stats = fs.statSync(fullPath);
+
+    if (stats.isDirectory()) {
+      // If folder contains exactly one folder and one JSX file nested, flatten it
+      const nestedItems = fs.readdirSync(fullPath);
+
+      const nestedFolders = nestedItems.filter((f) =>
+        fs.statSync(path.join(fullPath, f)).isDirectory()
+      );
+
+      const nestedFiles = nestedItems.filter((f) =>
+        fs.statSync(path.join(fullPath, f)).isFile()
+      );
+
+      if (nestedFolders.length === 1 && nestedFiles.length === 0) {
+        const nestedFolderPath = path.join(fullPath, nestedFolders[0]);
+        const nestedFolderFiles = fs.readdirSync(nestedFolderPath);
+
+        nestedFolderFiles.forEach((file) => {
+          const oldFilePath = path.join(nestedFolderPath, file);
+          const newFilePath = path.join(fullPath, file);
+
+          fs.renameSync(oldFilePath, newFilePath);
+          console.log(`Moved: ${oldFilePath} → ${newFilePath}`);
+        });
+
+        fs.rmdirSync(nestedFolderPath);
+        console.log(`Removed empty folder: ${nestedFolderPath}`);
+      }
+
+      // Recursively process subfolders
+      flattenComponentFolders(fullPath);
     }
   });
-  return fileList;
 }
 
-const files = getAllFiles(srcDir, [".jsx", ".js"]);
-const importRegex = /from\s+["'](\.\/[A-Za-z0-9_/]+)["']/g;
-
-let createdCount = 0;
-
-files.forEach((file) => {
-  const content = fs.readFileSync(file, "utf-8");
-  let match;
-
-  while ((match = importRegex.exec(content)) !== null) {
-    const relPath = match[1].replace("./", "");
-    const parts = relPath.split("/");
-    const compName = parts[parts.length - 1];
-
-    const compDir = path.join(srcDir, ...parts);
-    const compFile = path.join(compDir, `${compName}.jsx`);
-
-    if (!fs.existsSync(compDir)) {
-      fs.mkdirSync(compDir, { recursive: true });
-      console.log(`📂 Created folder: ${compDir}`);
-    }
-
-    if (!fs.existsSync(compFile)) {
-      fs.writeFileSync(
-        compFile,
-        `import React from "react";
-
-export default function ${compName}() {
-  return (
-    <div>
-      <h2>${compName} Placeholder</h2>
-    </div>
-  );
-}
-`
-      );
-      console.log(`✅ Created placeholder: ${compFile}`);
-      createdCount++;
-    }
-  }
-});
-
-console.log(`\n🎉 Import case-fixing complete. ${createdCount} placeholder(s) created.`);
+flattenComponentFolders(srcDir);
+console.log("✅ All component folders flattened successfully!");
