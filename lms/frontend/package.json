@@ -8,7 +8,7 @@
     "build": "npm run fix-imports && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "fix-imports": "node fix-imports-auto.js",
+    "fix-imports": "node ../fix-imports-auto.js",
     "test": "echo \"No tests configured\" && exit 0"
   },
   "dependencies": {
