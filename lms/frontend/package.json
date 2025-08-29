@@ -70,3 +70,11 @@
     "vite": "^6.3.5"
   }
 }
+"scripts": {
+  "start": "react-scripts start",
+  "fix-imports": "node fix-imports-auto.js",
+  "build": "npm run fix-imports && react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+}
+
