@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run fix-imports && vite build",
+    "preview": "vite preview",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "fix-imports": "node fix-imports-auto.js",
+    "test": "echo \"No tests configured\" && exit 0"
   },
   "dependencies": {
     "@draft-js-plugins/editor": "^4.1.4",
@@ -70,11 +72,3 @@
     "vite": "^6.3.5"
   }
 }
-"scripts": {
-  "start": "react-scripts start",
-  "fix-imports": "node fix-imports-auto.js",
-  "build": "npm run fix-imports && react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject"
-}
-
