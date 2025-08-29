@@ -5,7 +5,7 @@ const path = require("path");
 const SRC_DIR = path.join(__dirname, "frontend/src");
 
 /**
- * Convert to safe lowercase
+ * Convert a string to lowercase safe form
  */
 function toSafeCase(str) {
   return str.toLowerCase();
@@ -13,7 +13,6 @@ function toSafeCase(str) {
 
 /**
  * Recursively rename files & folders to lowercase
- * (safe rename: via temp file if case-insensitive FS)
  */
 function fixCase(dir) {
   if (!fs.existsSync(dir)) return;
@@ -25,25 +24,25 @@ function fixCase(dir) {
     const newName = toSafeCase(entry.name);
     const newPath = path.join(dir, newName);
 
+    // If name differs, rename
     if (entry.name !== newName) {
       try {
-        const tempPath = oldPath + "_tmp";
-        fs.renameSync(oldPath, tempPath);
-        fs.renameSync(tempPath, newPath);
+        fs.renameSync(oldPath, newPath);
         console.log(`Renamed: ${oldPath} → ${newPath}`);
       } catch (err) {
         console.error(`❌ Rename failed for ${oldPath}: ${err.message}`);
       }
     }
 
-    if (entry.isDirectory()) {
+    // Recurse if directory
+    if (fs.existsSync(newPath) && fs.lstatSync(newPath).isDirectory()) {
       fixCase(newPath);
     }
   }
 }
 
 /**
- * Fix imports inside source files
+ * Fix imports inside JS/JSX/TS/TSX files
  */
 function fixImports(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -51,27 +50,13 @@ function fixImports(filePath) {
   let content = fs.readFileSync(filePath, "utf8");
   let changed = false;
 
-  // Fix "from './...' or '../...'"
+  // Fix `import` and `require`
   content = content.replace(
-    /(from\s+["'](\.\/|\.\.\/)[^"']+["'])/g,
+    /(from\s+["']\.\/[^"']+["']|require\(["']\.\/[^"']+["']\))/g,
     (match) => {
-      const fixed = match.toLowerCase();
+      const fixed = match.replace(/([A-Z])/g, (m) => m.toLowerCase());
       if (fixed !== match) {
         console.log(`Fixed import in ${filePath}: ${match} → ${fixed}`);
-        changed = true;
-        return fixed;
-      }
-      return match;
-    }
-  );
-
-  // Fix dynamic imports: import("./...") or import("../...")
-  content = content.replace(
-    /(import\(\s*["'](\.\/|\.\.\/)[^"']+["']\s*\))/g,
-    (match) => {
-      const fixed = match.toLowerCase();
-      if (fixed !== match) {
-        console.log(`Fixed dynamic import in ${filePath}: ${match} → ${fixed}`);
         changed = true;
         return fixed;
       }
@@ -85,7 +70,7 @@ function fixImports(filePath) {
 }
 
 /**
- * Walk through all files and fix imports
+ * Walk through all source files
  */
 function walkAndFixImports(dir) {
   if (!fs.existsSync(dir)) return;
@@ -103,11 +88,11 @@ function walkAndFixImports(dir) {
   }
 }
 
-// === RUN ===
-console.log("📂 Renaming files & folders to lowercase...");
+// === RUN STEPS ===
+console.log("📂 Renaming files/folders to lowercase...");
 fixCase(SRC_DIR);
 
 console.log("✍️ Fixing imports...");
 walkAndFixImports(SRC_DIR);
 
-console.log("🎉 Done! All filenames and imports are now lowercase.");
+console.log("🎉 All filenames and imports fixed for case-sensitivity!");
